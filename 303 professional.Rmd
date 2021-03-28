@@ -1,0 +1,1794 @@
+---
+title: "303 professional code"
+author: "Fan Yang"
+date: "2021/3/28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/副本治疗数据建模12-19.csv")
+datanew<-data[-c(1:8)]
+```
+
+#mean
+```{r}
+dataf=c()
+for (i in 1:23){
+      dat <- datanew[,i]
+      dat<- ifelse(is.na(dat),round(mean(dat,na.rm=TRUE),2),dat)
+      dataf = cbind(dataf, dat)
+}
+dataf<-as.data.frame(dataf)
+
+names(dataf)<-(names(datanew[1:23]))
+data_new<-cbind(data[c(1:8)],dataf)
+```
+
+```{r}
+data_new$B超.1.1.正常.2.pcom.3.mfo[data_new$B超.1.1.正常.2.pcom.3.mfo == 1.9] <- 2.0
+```
+
+
+
+#mice
+```{r}
+
+imputed_Data <- mice(data1, m=10, maxit = 5, method = 'pmm', )
+```
+
+```{r}
+  fit=with(imputed_Data,lm(BMI.1. ~ WHR.1.+FINS.1.+	FPG.1.+T.1.+SHBG.1.+DHEAS.1.+LH.1.+FSH.1.+P.1.+PRL.1.+E2.1.+	AMH.1.+	TT3.1.+TT4.1.+FT3.1.+FT4.1.+TSH.1.+AST.1.+ALT.1.+BUN.1.+SCR.1.))
+summary(fit)
+pooled=pool(fit)
+
+```
+
+```{r}
+Y=summary(fit)[2]
+X=pooled$pooled$estimate
+data_abs=abs(Y-X)
+data_abs
+```
+
+```{r}
+list=c()
+for(i in 1:10){
+  dat=data_abs[(22*i-21):(22*i),]
+  value=sum(dat)
+  list=c(list,value)
+}
+list
+```
+
+```{r}
+completeData <- complete(imputed_Data,5)
+```
+
+
+
+#Hotdeck
+```{r}
+data_new1<-hotdeck(data_new,ord_var=c("性别","年龄","血Hb","血PLT"),domain_var="Diag")
+```
+
+
+
+#Random Forest
+```{r}
+dataf=c()
+for (i in 1:2){
+      dat <- datanew[,i]
+      dat<- ifelse(is.na(dat),round(mean(dat,na.rm=TRUE),2),dat)
+      dataf = cbind(dataf, dat)
+}
+dataf<-as.data.frame(dataf)
+
+names(dataf)<-(names(datanew[1:2]))
+data_new<-cbind(dataf,datanew[3:length(datanew)],data[22])
+```
+
+```{r}
+data_new$B超.1.1.正常.2.pcom.3.mfo<-as.factor(data_new$B超.1.1.正常.2.pcom.3.mfo)
+data_imputed <- rfImpute(BMI.1.~WHR.1.+FINS.1.+	FPG.1.+T.1.+SHBG.1.+DHEAS.1.+LH.1.+FSH.1.+P.1.+PRL.1.+E2.1.+	AMH.1.+B超.1.1.正常.2.pcom.3.mfo+	TT3.1.+TT4.1.+FT3.1.+FT4.1.+TSH.1.+AST.1.+ALT.1.+BUN.1.+	SCR.1.,data=data_new)
+```
+
+```{r}
+data_new1<-data_imputed[-14]
+data_new1<-round(data_new1,2)
+data_final=cbind(data[1:8],data_new1[1:13],data_imputed[14],data_new1[14:length(data_new1)])
+```
+
+
+
+#Ttest
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+data_new<-data[-c(1,3:8,22)]
+```
+
+```{r}
+X1<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),]
+X2<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),]
+X3<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),]
+X4<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==4),]
+X5<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),]
+```
+
+```{r}
+t.test(X1[2],X2[2])
+```
+
+```{r}
+datafinal=c()
+name_1=c()
+name_2=c()
+name_3=c()
+name_4=c()
+name_5=c()
+datac=c()
+datac1=c()
+datac2=c()
+datac3=c()
+datac4=c()
+data1=c()
+data2=c()
+data3=c()
+data4=c()
+data5=c()
+for(i in 2:23){
+  x1<-as.numeric(unlist(X1[i]))
+  x2<-as.numeric(unlist(X2[i]))
+  dat1=round(shapiro.test(x1)$p.value,3)
+  dat2=round(shapiro.test(x2)$p.value,3)
+  datac=c(datac,dat1,dat2)
+  name1=paste("Normality Test",1,names(X1)[i])
+  name2=paste("Normality Test",2,names(X2)[i])
+  name_1=c(name_1,name1,name2)
+  data1=cbind(name_1,datac)
+  if (dat1>0.05 && dat2>0.05){
+    dat_1=t.test(x1,x2)
+    dat_t=round(dat_1$statistic,2)
+    dat_p=round(dat_1$p.value,3)
+    datac1=c(datac1,dat_t,dat_p)
+    name3=paste("Ttest(T)",1,"VS",2,names(X1)[i])
+    name4=paste("Ttest(P)",1,"VS",2,names(X2)[i])
+    name_2=c(name_2,name3,name4)
+    data2=cbind(name_2,datac1)
+  } else if (dat1<=0.05 || dat2<=0.05){
+    x11<-log(X1[i])
+    x22<-log(X2[i])
+    dat3=round(shapiro.test(as.numeric(unlist(x11)))$p.value,3)
+    dat4=round(shapiro.test(as.numeric(unlist(x22)))$p.value,3)
+    datac2=c(datac2,dat3,dat4)
+    name5=paste("Normality Test(log)",1,names(X1)[i])
+    name6=paste("Normality Test(log)",2,names(X2)[i])
+    name_3=c(name_3,name5,name6)
+    data3=cbind(name_3,datac2)
+    if (dat3>0.05 && dat4>0.05){
+      dat_2=t.test(as.matrix(x11),as.matrix(x22))
+      dat_t2=round(dat_2$statistic,2)
+      dat_p2=round(dat_2$p.value,3)
+      datac3=c(datac3,dat_t2,dat_p2)
+      name7=paste("Ttest-T(log)",1,names(X1)[i])
+      name8=paste("Ttest-P(log)",2,names(X2)[i])
+      name_4=c(name_4,name7,name8)
+      data4=cbind(name_4,datac3)
+    }  else if (dat3<=0.05 || dat4<=0.05){
+      dat_3=wilcox.test(as.matrix(x11),as.matrix(x22))
+      dat_w1=round(dat_3$statistic,2)
+      dat_p3=round(dat_3$p.value,3)
+      datac4=c(datac4,dat_w1,dat_p3)
+      name9=paste("非参数检验(W)",1,"VS",2,names(X1)[i])
+      name10=paste("非参数检验(P)",1,"VS",2,names(X2)[i])
+      name_5=c(name_5,name9,name10)
+      data5=cbind(name_5,datac4)
+    }
+  }
+}
+```
+
+```{r}
+data1_1=data1
+data1_2=data2
+data1_3=data3
+data1_4=data4
+data1_5=data5
+```
+
+```{r}
+datafinal=c()
+name_1=c()
+name_2=c()
+name_3=c()
+name_4=c()
+name_5=c()
+datac=c()
+datac1=c()
+datac2=c()
+datac3=c()
+datac4=c()
+data1=c()
+data2=c()
+data3=c()
+data4=c()
+data5=c()
+for(i in 2:23){
+  x1<-as.numeric(unlist(X3[i]))
+  x2<-as.numeric(unlist(X5[i]))
+  dat1=round(shapiro.test(x1)$p.value,3)
+  dat2=round(shapiro.test(x2)$p.value,3)
+  datac=c(datac,dat1,dat2)
+  name1=paste("Normality Test",1,names(X3)[i])
+  name2=paste("Normality Test",2,names(X5)[i])
+  name_1=c(name_1,name1,name2)
+  data1=cbind(name_1,datac)
+  if (dat1>0.05 && dat2>0.05){
+    dat_1=t.test(x1,x2)
+    dat_t=round(dat_1$statistic,2)
+    dat_p=round(dat_1$p.value,3)
+    datac1=c(datac1,dat_t,dat_p)
+    name3=paste("Ttest(T)",1,"VS",2,names(X3)[i])
+    name4=paste("Ttest(P)",1,"VS",2,names(X5)[i])
+    name_2=c(name_2,name3,name4)
+    data2=cbind(name_2,datac1)
+  } else if (dat1<=0.05 || dat2<=0.05){
+    x11<-log(X3[i])
+    x22<-log(X5[i])
+    dat3=round(shapiro.test(as.numeric(unlist(x11)))$p.value,3)
+    dat4=round(shapiro.test(as.numeric(unlist(x22)))$p.value,3)
+    datac2=c(datac2,dat3,dat4)
+    name5=paste("Normality Test(log)",1,names(X3)[i])
+    name6=paste("Normality Test(log)",2,names(X5)[i])
+    name_3=c(name_3,name5,name6)
+    data3=cbind(name_3,datac2)
+    if (dat3>0.05 && dat4>0.05){
+      dat_2=t.test(as.matrix(x11),as.matrix(x22))
+      dat_t2=round(dat_2$statistic,2)
+      dat_p2=round(dat_2$p.value,3)
+      datac3=c(datac3,dat_t2,dat_p2)
+      name7=paste("Ttest-T(log)",1,names(X3)[i])
+      name8=paste("Ttest-P(log)",2,names(X5)[i])
+      name_4=c(name_4,name7,name8)
+      data4=cbind(name_4,datac3)
+    }  else if (dat3<=0.05 || dat4<=0.05){
+      dat_3=wilcox.test(as.matrix(x11),as.matrix(x22))
+      dat_w1=round(dat_3$statistic,2)
+      dat_p3=round(dat_3$p.value,3)
+      datac4=c(datac4,dat_w1,dat_p3)
+      name9=paste("非参数检验(W)",1,"VS",2,names(X3)[i])
+      name10=paste("非参数检验(P)",1,"VS",2,names(X5)[i])
+      name_5=c(name_5,name9,name10)
+      data5=cbind(name_5,datac4)
+    }
+  }
+}
+```
+
+```{r}
+data2_1=data1
+data2_2=data2
+data2_3=data3
+data2_4=data4
+data2_5=data5
+```
+
+```{r}
+datafinal=c()
+name_1=c()
+name_2=c()
+name_3=c()
+name_4=c()
+name_5=c()
+datac=c()
+datac1=c()
+datac2=c()
+datac3=c()
+datac4=c()
+data1=c()
+data2=c()
+data3=c()
+data4=c()
+data5=c()
+for(i in 3:4){
+  for(j in 2:23){
+    Xi<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==i),]
+    Xj<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==i+1),]
+  x1<-as.numeric(unlist(Xi[j]))
+  x2<-as.numeric(unlist(Xj[j]))
+  dat1=round(shapiro.test(x1)$p.value,3)
+  dat2=round(shapiro.test(x2)$p.value,3)
+  datac=c(datac,dat1,dat2)
+  name1=paste("Normality Test",1,names(Xi)[j])
+  name2=paste("Normality Test",2,names(Xj)[j])
+  name_1=c(name_1,name1,name2)
+  data1=cbind(name_1,datac)
+  if (dat1>0.05 && dat2>0.05){
+    dat_1=t.test(x1,x2)
+    dat_t=round(dat_1$statistic,2)
+    dat_p=round(dat_1$p.value,3)
+    datac1=c(datac1,dat_t,dat_p)
+    name3=paste("Ttest(T)",1,"VS",2,names(Xi)[j])
+    name4=paste("Ttest(P)",1,"VS",2,names(Xj)[j])
+    name_2=c(name_2,name3,name4)
+    data2=cbind(name_2,datac1)
+  } else if (dat1<=0.05 || dat2<=0.05){
+    x11<-log(Xi[j])
+    x22<-log(Xj[j])
+    dat3=round(shapiro.test(as.numeric(unlist(x11)))$p.value,3)
+    dat4=round(shapiro.test(as.numeric(unlist(x22)))$p.value,3)
+    datac2=c(datac2,dat3,dat4)
+    name5=paste("Normality Test(log)",1,names(Xi)[j])
+    name6=paste("Normality Test(log)",2,names(Xj)[j])
+    name_3=c(name_3,name5,name6)
+    data3=cbind(name_3,datac2)
+    if (dat3>0.05 && dat4>0.05){
+      dat_2=t.test(as.matrix(x11),as.matrix(x22))
+      dat_t2=round(dat_2$statistic,2)
+      dat_p2=round(dat_2$p.value,3)
+      datac3=c(datac3,dat_t2,dat_p2)
+      name7=paste("Ttest-T(log)",1,names(Xi)[j])
+      name8=paste("Ttest-P(log)",2,names(Xj)[j])
+      name_4=c(name_4,name7,name8)
+      data4=cbind(name_4,datac3)
+    }  else if (dat3<=0.05 || dat4<=0.05){
+      dat_3=wilcox.test(as.matrix(x11),as.matrix(x22))
+      dat_w1=round(dat_3$statistic,2)
+      dat_p3=round(dat_3$p.value,3)
+      datac4=c(datac4,dat_w1,dat_p3)
+      name9=paste("非参数检验(W)",1,"VS",2,names(Xi)[j])
+      name10=paste("非参数检验(P)",1,"VS",2,names(Xj)[j])
+      name_5=c(name_5,name9,name10)
+      data5=cbind(name_5,datac4)
+    }
+  }
+}
+}
+```
+
+```{r}
+data3_1=data1
+data3_2=data2
+data3_3=data3
+data3_4=data4
+data3_5=data5
+```
+
+```{r}
+datafinal1=rbind(data1_1,data2_1,data3_1)
+datafinal2=rbind(data1_2,data2_2,data3_2)
+datafinal3=rbind(data1_3,data2_3,data3_3)
+datafinal4=rbind(data1_4,data2_4,data3_4)
+datafinal5=rbind(data1_5,data2_5,data3_5)
+```
+
+
+
+
+#One-way ANOVA
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("stats")
+library("agricolae")
+library("PMCMRplus")
+```
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+data_new<-data[-c(1,3:8,22)]
+```
+
+```{r}
+X1<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),]
+X2<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),]
+X3<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),]
+X4<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==4),]
+X5<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),]
+```
+
+```{r}
+data1<-rbind(X1,X2)
+data2<-rbind(X3,X4,X5)
+```
+
+```{r}
+datab=c()
+name=c()
+for(i in 2:23){
+group=as.matrix(data1[1])
+value=as.matrix(data1[i])
+fit<-aov(value~group,data=data1)
+out<-lsdTest(fit)
+result=summary(out)
+dat_t=round(result$statistic,2)
+dat_p=round(result$p.value,2)
+datab=c(datab,dat_t,dat_p)
+name1=paste("LSD Test(T)",1,"-",2,names(data1[i]))
+name2=paste("LSD Test(P)",1,"-",2,names(data1[i]))
+name=c(name,name1,name2)
+}
+datab=cbind(name,datab)
+```
+
+```{r}
+i=2
+name=c()
+group=as.matrix(data2[1])
+value=as.matrix(data2[2])
+fit<-aov(value~group,data=data2)
+out<-lsdTest(fit)
+result=summary(out)
+dat_t=result$statistic
+dat_p=result$p.value
+result
+dat_t
+dat_p
+dataa=c(dat_t,dat_p)
+dataa=na.omit(dataa)
+name1=paste("LSD Test(T)",4,"-",3,names(data2[i]))
+name2=paste("LSD Test(T)",5,"-",3,names(data2[i]))
+name3=paste("LSD Test(T)",5,"-",4,names(data2[i]))
+name4=paste("LSD Test(P)",4,"-",3,names(data2[i]))
+name5=paste("LSD Test(P)",5,"-",3,names(data2[i]))
+name6=paste("LSD Test(P)",5,"-",4,names(data2[i]))
+name=c(name,name1,name2,name3,name4,name5,name6)
+dataa=cbind(name,dataa)
+dataa
+```
+
+
+```{r}
+datafinal=c()
+datac=c()
+name=c()
+for(i in 2:23){
+group=as.matrix(data2[1])
+value=as.matrix(data2[i])
+fit<-aov(value~group,data=data2)
+out<-lsdTest(fit)
+result=summary(out)
+dat_t=round(result$statistic,2)
+dat_p=round(result$p.value,2)
+datac=c(datac,dat_t,dat_p)
+datac=na.omit(datac)
+name1=paste("LSD Test(T)",4,"-",3,names(data2[i]))
+name2=paste("LSD Test(T)",5,"-",3,names(data2[i]))
+name3=paste("LSD Test(T)",5,"-",4,names(data2[i]))
+name4=paste("LSD Test(P)",4,"-",3,names(data2[i]))
+name5=paste("LSD Test(P)",5,"-",3,names(data2[i]))
+name6=paste("LSD Test(P)",5,"-",4,names(data2[i]))
+name=c(name,name1,name2,name3,name4,name5,name6)
+}
+datafinal=cbind(name,datac)
+```
+```{r}
+datafinal1=rbind(datab,datafinal)
+colnames(datafinal1)=c("LSD Test", "Values")
+```
+
+```{r}
+write.csv(datafinal1,file="C:/Users/admin/Desktop/治疗数据建模12-19(单因素方差分析).csv",quote=F,row.names = F)
+```
+
+
+
+
+#Non-parametric test
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+data<-na.omit(data)
+data_new<-cbind(data[c(3,7,9:22,24:31)])
+```
+
+```{r}
+name=c()
+datac=c()
+for (i in 1:2){
+  for (j in 3:24){
+    Y<-as.numeric(unlist(data[j]))
+    X<-as.numeric(unlist(data[i]))
+    dat=kruskal.test(Y~X)
+    dat_c<-round(dat$statistic,2)
+    dat_p<-round(dat$p.value,3)
+    datac<-c(datac,dat_c,dat_p)
+    name1 = paste("非参数(卡方值)",names(data_new)[i],"~",names(data_new)[j])
+    name2 = paste("非参数(P值)",names(data_new)[i],"~",names(data_new)[j])
+    name=c(name,name1,name2)
+  }
+}
+datafinal=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+colnames(datafinal)=c("非参数检验","Values")
+```
+
+
+
+#Covariance
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("data.table")
+```
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+datanew<-na.omit(data)
+```
+
+```{r}
+result1=c()
+result2=c()
+datac=c()
+name=c()
+for (i in 3:30){
+  for(j in 3:30){
+    dati=shapiro.test(as.matrix(datanew[i]))$p.value
+    datj=shapiro.test(as.matrix(datanew[j]))$p.value
+    if (dati>=0.05 && datj>=0.05){
+      result1=round(cor(x=datanew[i],y=datanew[c(j)],method="pearson"),2)
+    } else if (dati<0.05 && datj<0.05){
+      result2=round(cor(x=datanew[i],y=datanew[c(j)],method="spearman"),2)
+    }
+    result3=c(result1,result2)
+    datac=rbind(datac,result3)
+    name1=paste("相关性检验",names(datanew[i]),"&",names(datanew)[j])
+    name=c(name,name1)
+}}
+datafinal=cbind(name,datac)
+```
+
+
+```{r}
+result1=c()
+result2=c()
+datac3=c()
+name=c()
+for (k in 1:3){
+  for(j in 3:30){
+    for(i in 3:30){
+      Xi=datanew[which(datanew$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==k),]
+    dati=shapiro.test(as.matrix(Xi[i]))$p.value
+    datj=shapiro.test(as.matrix(Xi[j]))$p.value
+    if (dati>=0.05 && datj>=0.05){
+      result1=round(cor(x=Xi[i],y=Xi[c(j)],method="pearson"),2)
+    } else if (dati<0.05 && datj<0.05){
+      result2=round(cor(x=Xi[i],y=Xi[c(j)],method="spearman"),2)
+    }
+    result3=c(result1,result2)
+    datac3=rbind(datac3,result3)
+    name1=paste("相关性检验",k,names(datanew[i]),"&",names(datanew)[j])
+    name=c(name,name1)
+}}}
+datafinal3=cbind(name,datac3)
+datafinal2=cbind(datafinal3[1:784,],datafinal3[785:1568,],datafinal3[1569:2352,])
+```
+
+```{r}
+k=4
+result1=c()
+result2=c()
+datac4=c()
+name=c()
+Xi=datanew[which(datanew$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==k),]
+Xi=cbind(Xi[1:5],Xi[7:30])
+
+for (i in 3:28){
+  for(j in 3:28){
+    dati=shapiro.test(as.matrix(Xi[i]))$p.value
+    datj=shapiro.test(as.matrix(Xi[j]))$p.value
+    if (dati>=0.05 && datj>=0.05){
+      result1=round(cor(x=Xi[i],y=Xi[c(j)],method="pearson"),2)
+    } else if (dati<0.05 && datj<0.05){
+      result2=round(cor(x=Xi[i],y=Xi[c(j)],method="spearman"),2)
+    }
+    result3=c(result1,result2)
+    datac4=rbind(datac4,result3)
+    name1=paste("相关性检验",4,names(datanew[i]),"&",names(datanew)[j])
+    name=c(name,name1)
+}}
+datafinal4=cbind(name,datac4)
+```
+
+```{r}
+k=5
+result1=c()
+result2=c()
+datac5=c()
+name=c()
+for (i in 3:30){
+  for(j in 3:30){
+      Xi=datanew[which(datanew$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==k),]
+    dati=shapiro.test(as.matrix(Xi[i]))$p.value
+    datj=shapiro.test(as.matrix(Xi[j]))$p.value
+    if (dati>=0.05 && datj>=0.05){
+      result1=round(cor(x=Xi[i],y=Xi[c(j)],method="pearson"),2)
+    } else if (dati<0.05 && datj<0.05){
+      result2=round(cor(x=Xi[i],y=Xi[c(j)],method="spearman"),2)
+    }
+    result3=c(result1,result2)
+    datac5=rbind(datac5,result3)
+    name1=paste("相关性检验",5,names(datanew[i]),"&",names(datanew)[j])
+    name=c(name,name1)
+}}
+datafinal5=cbind(name,datac5)
+```
+
+```{r}
+datafinall=cbind(datafinal,datafinal2,datafinal5)
+colnames(datafinall)=c("Correlation","Value","Cor of Group1","Value","Cor of Group2","Value","Cor of Group3","Value","Cor of Group5","Value")
+```
+
+```{r}
+write.csv(datafinall,file="C:/Users/admin/Desktop/cor1.csv",quote=F,row.names = F)
+write.csv(datafinal4,file="C:/Users/admin/Desktop/cor2.csv",quote=F,row.names = F)
+```
+
+
+
+#Chisq.test
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("data.table")
+
+```
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+datanew<-data[c(2:8,22)]
+data_new<-na.omit(datanew)
+data_new1<-data_new[c(2,4,8)]
+data_new2<-data_new[c(5,7)]
+```
+
+```{r}
+X1<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),]
+X2<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),]
+X3<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),]
+X4<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==4),]
+X5<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),]
+```
+
+```{r}
+#二分型卡分向量-组1和组2
+name=c()
+datac=c()
+for(i in 1:2){
+  Xi<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),][i]
+    Xj<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),][i]
+    x1i<-sum(as.numeric(unlist(Xi[1]==1)))
+    x1j<-sum(as.numeric(unlist(Xj[1]==1)))
+     data1_2<-c(x1i,nrow(Xi)-x1i,x1j,nrow(Xj)-x1j)
+data1_2m <- matrix(data1_2,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2")))
+dat=chisq.test(data1_2m)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",1,"VS",2,names(data_new2)[i])
+name2 = paste("ChisqTest(p值)",1,"VS",2,names(data_new2)[i])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+}
+datafinal12=as.data.frame(cbind(name,datac))
+datafinal12
+```
+
+```{r}
+#二分型卡分向量-组3和组5
+name=c()
+datac=c()
+for(i in 1:2){
+  Xi<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),][i]
+     Xj<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),][i]
+    x1i<-sum(as.numeric(unlist(Xi[1]==1)))
+    x1j<-sum(as.numeric(unlist(Xj[1]==1)))
+     data3_5<-c(x1i,nrow(Xi)-x1i,x1j,nrow(Xj)-x1j)
+data3_5m <- matrix(data3_5,nrow=2,
+                  dimnames=list(c("组3","组5"),
+                                c("1","2")))
+dat=chisq.test(data3_5m)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",3,"VS",5,names(data_new2)[i])
+name2 = paste("ChisqTest(p值)",3,"VS",5,names(data_new2)[i])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+}
+datafinal35=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+#二分型卡分向量-组3和组4，组4和组5
+name=c()
+datac=c()
+for(i in 3:4){
+  for(j in 1:2){
+    Xi<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==i),][j]
+    X1i<-sum(as.numeric(unlist(Xi==1)))
+    Xj<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==(i+1)),][j]
+    X1j<-sum(as.numeric(unlist(Xj==1)))
+    data34<-c(X1i,nrow(Xi)-X1i,X1j,nrow(Xj)-X1j)
+    data34m <- matrix(data34,nrow=2,
+                  dimnames=list(c("组3","组4"),
+                                c("1","2")))
+    dat=chisq.test(data34m)
+    Chisq_t<-round(dat$statistic,2)
+    Chisq_p<-round(dat$p.value,5)
+    datac=c(datac,Chisq_t,Chisq_p)
+    name1 = paste("ChisqTest(卡方值)",i,"VS",(i+1),names(data_new2)[j])
+name2 = paste("ChisqTest(p值)",i,"VS",(i+1),names(data_new2)[j])
+name = c(name,name1,name2)
+  }
+}
+datafinal34<-as.data.frame(cbind(name,datac))
+```
+
+```{r}
+datafinal<-rbind(datafinal12,datafinal34,datafinal35)
+```
+
+```{r}
+#二分型卡分向量-组1和组2
+name=c()
+datac=c()
+for(i in 1:2){
+  Xi<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),][i]
+    Xj<-data_new2[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),][i]
+    x1i<-sum(as.numeric(unlist(Xi[1]==1)))
+    x1j<-sum(as.numeric(unlist(Xj[1]==1)))
+     data1_2<-c(x1i,nrow(Xi)-x1i,x1j,nrow(Xj)-x1j)
+data1_2m <- matrix(data1_2,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2")))
+dat=chisq.test(data1_2m)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",1,"VS",2,names(data_new2)[i])
+name2 = paste("ChisqTest(p值)",1,"VS",2,names(data_new2)[i])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+}
+datafinal12=as.data.frame(cbind(name,datac))
+datafinal12
+```
+
+```{r}
+#三分型卡分向量-组1和组2
+name=c()
+datac=c()
+for(i in 1:3){
+  Xi<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),][i]
+     Xj<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),][i]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+     data12<-c(x11,x12,x13,x21,x22,x23)
+data12m <- matrix(data12,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3")))
+dat=fisher.test(data12m,1)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(p值)",1,"VS",2,names(data_new1)[i])
+name = c(name,name1)
+datac=c(datac,p值)
+}
+datafinal12=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+#三分型卡分向量-组3和组5
+name=c()
+datac=c()
+for(i in 1:3){
+  Xi<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),][i]
+     Xj<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),][i]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+     data35<-c(x11,x12,x13,x21,x22,x23)
+data35m <- matrix(data35,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3")))
+dat=chisq.test(data35m,1)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",3,"VS",5,names(data_new1)[i])
+name2 = paste("ChisqTest(p值)",3,"VS",5,names(data_new1)[i])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+}
+datafinal35=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+#三分型卡分向量-组3和组4，组4和组5
+name=c()
+datac=c()
+for(i in 3:4){
+  for(j in 1:3){
+    Xi<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==i),][j]
+     Xj<-data_new1[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==(i+1)),][j]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+     data35<-c(x11,x12,x13,x21,x22,x23)
+data35m <- matrix(data35,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3")))
+dat=chisq.test(data35m,1)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",i,"VS",(i+1),names(data_new1)[j])
+name2 = paste("ChisqTest(p值)",i,"VS",(i+1),names(data_new1)[j])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+  }
+}
+datafinal34<-as.data.frame(cbind(name,datac))
+```
+
+```{r}
+datafinal=rbind(datafinal,datafinal12,datafinal34,datafinal35)
+```
+
+```{r}
+#四分向量-组1和组2
+name=c()
+datac=c()
+  Xi<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),][6]
+     Xj<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),][6]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x14<-sum(as.numeric(unlist(Xi[1]==4)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+    x24<-sum(as.numeric(unlist(Xj[1]==4)))
+     data12<-c(x11,x12,x13,x14,x21,x22,x23,x24)
+data12m <- matrix(data12,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3","4")))
+dat=fisher.test(data12m,1)
+p值<-round(dat$p.value,5)
+name2 = paste("ChisqTest(p值)",1,"VS",2,names(data_new)[6])
+name = c(name,name2)
+datac=c(datac,p值)
+datafinal12=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+#四分向量-组3和组5
+name=c()
+datac=c()
+  Xi<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==3),][6]
+     Xj<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==5),][6]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x14<-sum(as.numeric(unlist(Xi[1]==4)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+    x24<-sum(as.numeric(unlist(Xj[1]==4)))
+     data35<-c(x11,x12,x13,x14,x21,x22,x23,x24)
+data35m <- matrix(data35,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3","4")))
+dat=chisq.test(data35m,1)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",3,"VS",5,names(data_new)[6])
+name2 = paste("ChisqTest(p值)",3,"VS",5,names(data_new)[6])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+datafinal35=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+for (i in 3:4){
+  name=c()
+datac=c()
+  Xi<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==i),][6]
+     Xj<-data_new[which(data_new$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==(i+1)),][6]
+    x11<-sum(as.numeric(unlist(Xi[1]==1)))
+    x12<-sum(as.numeric(unlist(Xi[1]==2)))
+    x13<-sum(as.numeric(unlist(Xi[1]==3)))
+    x14<-sum(as.numeric(unlist(Xi[1]==4)))
+    x21<-sum(as.numeric(unlist(Xj[1]==1)))
+    x22<-sum(as.numeric(unlist(Xj[1]==2)))
+    x23<-sum(as.numeric(unlist(Xj[1]==3)))
+    x24<-sum(as.numeric(unlist(Xj[1]==4)))
+     data34<-c(x11,x12,x13,x14,x21,x22,x23,x24)
+data34m <- matrix(data34,nrow=2,
+                  dimnames=list(c("组1","组2"),
+                                c("1","2","3","4")))
+dat=chisq.test(data34m,1)
+卡方值<-round(dat$statistic,2)
+p值<-round(dat$p.value,5)
+name1 = paste("ChisqTest(卡方值)",i,"VS",(i+1),names(data_new)[6])
+name2 = paste("ChisqTest(p值)",i,"VS",(i+1),names(data_new)[6])
+name = c(name,name1,name2)
+datac=c(datac,卡方值,p值)
+}
+datafinal34=as.data.frame(cbind(name,datac))
+```
+
+```{r}
+datafinal=rbind(datafinal,datafinal12,datafinal34,datafinal35)
+colnames(datafinal)=c("卡方检测","Values")
+```
+
+```{r}
+write.csv(datafinal,file="C:/Users/admin/Desktop/治疗数据建模12-19(卡方检验).csv",quote=F,row.names = F)
+```
+
+
+
+
+#Graph
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggplot2")
+library("plyr")
+library("pROC")
+library("qqman")
+library(data.table)
+library(plyr)
+library(grpreg)
+library(pROC)
+library(e1071)
+library(randomForest)
+library(SIS)
+library(pipeR)
+library(leaps)
+library(MASS)
+library(ROCR)
+library(survival)
+library(glmnet)
+library(MASS)
+library(ggthemes)
+library(ggpubr)
+library(survival)
+library(survminer)
+library(CMplot)
+```
+
+```{r}
+data<-read.csv("C:/Users/admin/Desktop/111/数据填补/治疗数据建模12-19(随机森林）.csv")
+data<-na.omit(data)
+datanew=cbind(data[1:8],data[22])
+```
+
+
+
+```{r}
+#Barplot
+counts <- table(datanew[2])
+barplot(counts, main="各组人数分布",
+   xlab="Number of People")
+#Barplot(分组)
+counts<-table(as.matrix(datanew[9]),as.matrix(datanew[2]))
+barplot(counts,beside=TRUE,col=c("red","green","yellow"),legend=rownames(counts),main="不同组别B超数据",xlab="组别",ylab="频数",args.legend=c(x=22.5,y=50))
+```
+
+```{r}
+#boxplot
+X=as.matrix(datanew[2])
+p<-ggplot(data,aes(group=as.matrix(datanew[2]),x=X,y=BMI.1.,color=X))+geom_boxplot(color=c("Red","Green","Black","Blue","Purple"),outlier.colour="red", outlier.shape=18, outlier.size=2)+theme(legend.position="right")+labs(title="各组样本BMI指数分布",x="组别", y = "BMI指数")
+p
+#Boxplot(点图)
+p<-ggplot(data, aes(group=as.matrix(datanew[2]),x=X, y=BMI.1.)) + 
+  geom_dotplot(binaxis='y', stackdir='center',stackratio=0.8, dotsize=0.8)
+p+stat_summary(fun=mean, geom="point", shape=18,
+                 size=3, color="red")
+```
+
+```{r}
+#Histogram
+p<-ggplot(data, aes(x=BMI.1.)) + 
+  geom_histogram(binwidth=1,color="black", fill="skyblue")
+p+ geom_vline(aes(xintercept=mean(BMI.1.)),
+            color="blue", linetype="dashed", size=1)+labs(title="BMI指数分布",x="BMI指数", y = "Count")
+#分组
+f_入睡时辰=factor(data$入睡时辰)
+ggplot(data, aes(x=BMI.1., color=f_入睡时辰))+
+  geom_histogram(binwidth=1,fill="white", position="dodge")+
+  theme(legend.position="right")+
+  labs(title="入睡时辰与BMI",x="BMI指数", y = "Count")
+#根据组别分开画图
+p <- ggplot(data = data, mapping = aes(
+  x = BMI.1.))
+p + geom_histogram() +
+  facet_wrap(~ 入睡时辰)
+```
+
+```{r}
+#Scatterplot
+f_入睡时辰=factor(data$入睡时辰)
+ggplot(data, aes(x = BMI.1., y = WHR.1.)) +
+    geom_point(aes(color = f_入睡时辰))+stat_smooth(method = "lm",
+        col = "Red",
+        se = FALSE,
+        size = 1)+
+  labs(title="WHR and BMI",x="BMI", y = "WHR")
+```
+
+```{r}
+#Lineplot
+#1
+ggplot(data,aes(x=年龄, y=FT4.1., colour=factor(X))) + geom_line()+geom_point(pch=18)+scale_colour_manual(values=c("red","green","blue","Yellow","Purple"))
+```
+
+```{r}
+#Heatmap
+p <- ggplot(data = data, mapping = aes(
+  x = 疗效分级, y = 组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合, fill = BMI.1.))
+p + geom_tile() +
+  scale_fill_viridis_c()
+```
+
+```{r}
+#ROC
+X1<-data[which(data$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==1),]
+X2<-data[which(data$组别1.补肾调周.2.燮和饮.3.高雄明显联合皮肤科.4.糖脂代谢紊乱明显联合内分泌针灸.5.全部明显都要联合==2),]
+data=rbind(X1,X2)
+name1 = names(data)[c(24,9,21,12,28,29,11)]
+#建立roc曲线
+model<-glm(痤疮情况.1..1.有.0.无. ~ TT4.1.+BMI.1.+AMH.1.+FPG.1.+AST.1.+ALT.1.+FINS.1.,data=data,family = "binomial")
+summary(model)
+score = coef(model)[2]*data[,name1][1]+coef(model)[3]*data[,name1][2]+coef(model)[4]*data[,name1][3]+
+  coef(model)[5]*data[,name1][4]+coef(model)[6]*data[,name1][5]+coef(model)[7]*data[,name1][6]+
+  coef(model)[8]*data[,name1][7]
+  roc_model = roc(as.numeric(data[,8]),as.numeric(as.matrix(score)))
+  p<-ggroc(roc_model)
+  p
+```
+
+```{r}
+log2FoldChange<-sample(rnorm(10000,mean=0,sd=4),1000,replace=T)
+padj<-sample(runif(10000,0,0.08),1000,replace=T)
+#log2FoldChange和padj合并到一个数据框
+mydata <- data.frame(log2FoldChange,padj)
+##对满足不同条件的数据给不同的标记，放入Condition列，颜色放入color列
+mydata$Condition=ifelse(mydata$log2FoldChange>=1 & mydata$padj<=0.05,"up",ifelse(mydata$log2FoldChange<=-1 & mydata$padj<=0.05,"down","normal"))
+mydata$color=ifelse(mydata$log2FoldChange>=1 & mydata$padj<=0.05,"red",ifelse(mydata$log2FoldChange<=-1 & mydata$padj<=0.05,"green","gray"))
+p <-ggplot(data=mydata, aes(x=log2FoldChange, y=-log10(padj), colour=Condition)) + geom_point()  +  xlab("log2 fold change") + ylab("-log10 padj")+geom_hline(yintercept=-log10(0.05),linetype=4)+geom_vline(xintercept=c(-1,1),linetype=4)+scale_color_manual(values=c('up'='red','down'='green','normal'='gray'))
+p
+```
+```{r}
+datam<-as.data.frame(lung)
+surv <- Surv(time = lung$time, lung$status == 2)
+fit <- coxph(surv~sex, data=lung)
+summary(fit)
+x<-coef(summary(fit))[1,5]
+y<-coef(summary(fit))[1,2]
+plot(cox.zph(fit))
+```
+
+```{r}
+datac=c()
+for(i in 1:length(lung)){
+  X=as.matrix(lung[i])
+  fit<-coxph(surv~X,data=lung)
+  P_value=round(coef(summary(fit))[1,5],4)
+  datac=rbind(datac,P_value)
+}
+datac
+```
+
+```{r}
+lung$age_cut <- cut(lung$age, breaks = c(0, 70, Inf), labels = c("young", "old"))
+fit <- survfit(surv~age_cut, data = lung)
+ggsurvplot(fit, data = lung)
+```
+
+```{r}
+cox.test <- coxph(surv~age_cut + strata(sex), data = lung)
+ggsurvplot(survfit(cox.test), data = lung)
+coxfits <- coxph(surv~age_cut+sex+ph.ecog+ph.karno+wt.loss, data = lung)
+coxfits_c <- coxph(surv~time+ph.karno+ph.ecog,data = lung)
+summary(coxfits_c)
+ggforest(coxfits,data=lung)
+ggforest(coxfits_c,data=lung)
+```
+
+```{r}
+#曼哈顿图
+data("pig60K")
+data(cattle50K) 
+CMplot(pig60K,plot.type="c",bin.size=1e6,col=c("darkgreen", "yellow", "red"))
+ CMplot(pig60K,plot.type="c",r=0.4,col=c("grey30","grey60"),chr.labels=paste("Chr",c(1:18,"X"),sep=""),threshold=c(1e-6,1e-4),cir.chr.h=1.5,amplify=TRUE,threshold.lty=c(1,2),threshold.col=c("red","blue"),signal.line=1,signal.col=c("red","green"),chr.den.col=c("darkgreen","yellow","red"),
+ bin.size=1e6,outward=FALSE,file="jpg",memo="",dpi=300,file.output=TRUE,verbose=TRUE)
+```
+
+
+
+
+
+#TFA Project
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library("stats")
+library("agricolae")
+library(lattice)
+library("PMCMRplus")
+library("patchwork")
+library(tidyverse)
+```
+
+```{r}
+data=read.csv("C:/Users/admin/Desktop/111/项目/1/结果/整理.csv")
+data1=read.csv("C:/Users/admin/Desktop/111/项目/1/结果/3.csv")
+data2=read.csv("C:/Users/admin/Desktop/111/项目/1/结果/副本TFA-WB-4B 灰度值(2)(2).csv")
+```
+
+```{r}
+data3=read.csv("C:/Users/admin/desktop/111/项目/1/结果/组织ELISA.csv")
+```
+
+```{r}
+datab=c()
+name=c()
+for(i in 4:length(data)){
+  group=as.matrix(data[3])
+  value=as.matrix(data[i])
+  fit<-aov(value~group,data=data)
+  out<-lsdTest(fit)
+  dat_p=round(out$p.value,4)
+  datab=c(datab,dat_p[2,1],dat_p[2,2],dat_p[3,3],dat_p[4,3])
+  name1=paste("ANOVA Test",3,"VS",1,names(data[i]),"P-value")
+  name2=paste("ANOVA Test",3,"VS",2,names(data[i]),"P-value")
+  name3=paste("ANOVA Test",4,"VS",3,names(data[i]),"P-value")
+  name4=paste("ANOVA Test",5,"VS",3,names(data[i]),"P-value")
+  name=c(name,name1,name2,name3,name4)
+}
+data_anova=cbind(name,datab)
+colnames(data_anova)=c("ANOVA Analysis","Pvalue")
+```
+
+```{r}
+write.csv(data_anova,.file="C:/Users/admin/Desktop/单因素分析.csv",quote=F,row.names = F)
+```
+
+
+```{r}
+pdf("boxplot1.pdf")
+par(mfrow=c(1,3))
+ymin = round(quantile(data[,14], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,14], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p1<-boxplot(as.matrix(data[14])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[14]),main=c(names(data[14])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+		ymin = round(quantile(data[,15], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,15], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p3<-boxplot(as.matrix(data[15])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[15]),main=c(names(data[15])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+ymin = round(quantile(data[,13], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,13], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p2<-boxplot(as.matrix(data[13])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[13]),main=c(names(data[13])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+
+	dev.off()
+```
+
+```{r}
+pdf("boxplot2.pdf")
+par(mfrow=c(1,3))
+ymin = round(quantile(data[,4], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,4], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p1<-boxplot(as.matrix(data[4])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[4]),main=c(names(data[4])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+ymin = round(quantile(data[,5], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,5], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p2<-boxplot(as.matrix(data[5])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[5]),main=c(names(data[5])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+	ymin = round(quantile(data[,10], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,10], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p3<-boxplot(as.matrix(data[10])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[10]),main=c(names(data[10])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+	ymin = round(quantile(data[,8], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,8], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p1<-boxplot(as.matrix(data[8])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[8]),main=c(names(data[8])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+ymin = round(quantile(data[,9], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,9], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p2<-boxplot(as.matrix(data[9])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[9]),main=c(names(data[9])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+	ymin = round(quantile(data[,6], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,6], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p3<-boxplot(as.matrix(data[6])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[6]),main=c(names(data[6])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+		ymin = round(quantile(data[,7], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,7], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p3<-boxplot(as.matrix(data[7])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[7]),main=c(names(data[7])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+dev.off()
+```
+
+```{r}
+
+pdf("boxplot3.pdf")
+par(mfrow=c(1,3))
+ymin = round(quantile(data[,17], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,17], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p1<-boxplot(as.matrix(data[17])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[17]),main=c(names(data[17])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+ymin = round(quantile(data[,18], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,18], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p2<-boxplot(as.matrix(data[18])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[18]),main=c(names(data[18])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+	
+	ymin = round(quantile(data[,19], probs=.01)-0.5,0)
+	ymax = round(quantile(data[,19], probs=.99)+1,0)
+	ylim = c(ymin, ymax)
+  p3<-boxplot(as.matrix(data[19])~as.matrix(data$Group),ylim=ylim,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data[3]),ylab = names(data[19]),main=c(names(data[19])))
+	axis(1.5,at = seq(1,5,by = 1),labels = c("Sham-1","Sham-2","Model","TFA in","TFA after"),cex.axis=0.8,las=2)
+
+	
+
+dev.off()
+```
+
+
+
+```{r}
+
+group=factor(dat1$Group)
+ggplot(dat1,aes(GroupName,Value,fill=group))+geom_bar(stat="identity",position = "dodge")+labs(x ="",y="relative protein expression")+theme_minimal()
+ggplot(dat2,aes(GroupName,Value,fill=group))+geom_bar(stat="identity",position = "dodge")+labs(x ="",y="relative protein expression")+theme_minimal()
+```
+```{r}
+x1<-data2[which(data2$Group==1),]
+x2<-data2[which(data2$Group==2),]
+x3<-data2[which(data2$Group==3),]
+x4<-data2[which(data2$Group==4),]
+x5<-data2[which(data2$Group==5),]
+datac1=c()
+datac2=c()
+datac3=c()
+datac4=c()
+datac5=c()
+name=c()
+for(i in 2:10){
+dat=mean(x1[,i])
+datac1=c(datac1,dat)}
+for(i in 2:10){
+dat=mean(x2[,i])
+datac2=c(datac2,dat)}
+for(i in 2:10){
+dat=mean(x3[,i])
+datac3=c(datac3,dat)}
+for(i in 2:10){
+dat=mean(x4[,i])
+datac4=c(datac4,dat)}
+for(i in 2:10){
+dat=mean(x5[,i])
+datac5=c(datac5,dat)}
+datac=rbind(datac1,datac2,datac3,datac4,datac5)
+
+Group=c(1,2,3,4,5)
+datac=as.data.frame((cbind(Group,datac)))
+name=c("Group","Col1","Col3","MMP2","MMP9","TGFβ","TMP","TIMP","αSMA","Vimentin")
+
+```
+
+
+```{r}
+x1<-data[which(data$Group==1),]
+x2<-data[which(data$Group==2),]
+x3<-data[which(data$Group==3),]
+x4<-data[which(data$Group==4),]
+x5<-data[which(data$Group==5),]
+```
+
+```{r}
+name=c()
+datac=c()
+for(i in 4:length(data)){
+  dat=t.test(x3[i],x1[i])
+  datp=dat$p.value
+  name1=paste("P-value",3,"vs",1,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac1=cbind(name,datac)
+```
+
+```{r}
+name=c()
+datac=c()
+for(i in 4:length(data)){
+  dat=t.test(x3[i],x2[i])
+  datp=dat$p.value
+  name1=paste("P-value",3,"vs",2,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac2=cbind(name,datac)
+```
+
+```{r}
+name=c()
+datac=c()
+for(i in 4:length(data)){
+  dat=t.test(x4[i],x3[i])
+  datp=dat$p.value
+  name1=paste("P-value",4,"vs",3,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac3=cbind(name,datac)
+```
+
+```{r}
+name=c()
+datac=c()
+for(i in 4:length(data)){
+  dat=t.test(x5[i],x3[i])
+  datp=dat$p.value
+  name1=paste("P-value",5,"vs",3,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac5=cbind(name,datac)
+```
+
+```{r}
+datac=cbind(datac1,datac2,datac3,datac5)
+```
+
+```{r}
+write.csv(datac,file="C:/Users/admin/Desktop/t-test.csv",quote=F,row.names = F)
+```
+
+```{r}
+x1<-data2[which(data2$Group==1),]
+x2<-data2[which(data2$Group==2),]
+x3<-data2[which(data2$Group==3),]
+x4<-data2[which(data2$Group==4),]
+x5<-data2[which(data2$Group==5),]
+datac=c()
+name=c()
+for(i in 2:length(data2)){
+  dat=t.test(x3[i],x1[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",1,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac1=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 2:length(data2)){
+  dat=t.test(x3[i],x2[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",2,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac2=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 2:length(data2)){
+  dat=t.test(x3[i],x4[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",4,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac3=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 2:length(data2)){
+  dat=t.test(x3[i],x5[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",5,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac4=cbind(name,datac)
+datacc=cbind(datac1,datac2,datac3,datac4)
+```
+
+```{r}
+write.csv(datacc,file="C:/Users/admin/Desktop/t-test(灰度).csv",quote=F,row.names = F)
+```
+
+```{r}
+pdf("boxplot组织.pdf")
+par(mfrow = c(1,2))
+X=as.matrix(data3[2])
+for(i in 3:10){
+  boxplot(as.matrix(data3[i])~X,xaxt="n",col=c("Blue","Blue","Red","Purple","Purple"),xlab=names(data3[2]),ylab = names(data3[i]),main=c(names(data3[i])))
+
+}
+dev.off()
+```
+
+```{r}
+x1<-data3[which(data3$Group==1),]
+x2<-data3[which(data3$Group==2),]
+x3<-data3[which(data3$Group==3),]
+x4<-data3[which(data3$Group==4),]
+x5<-data3[which(data3$Group==5),]
+datac=c()
+name=c()
+for(i in 3:length(data3)){
+  dat=t.test(x3[i],x1[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",1,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac1=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 3:length(data3)){
+  dat=t.test(x3[i],x2[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",2,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac2=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 3:length(data3)){
+  dat=t.test(x3[i],x4[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",4,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac3=cbind(name,datac)
+```
+
+```{r}
+datac=c()
+name=c()
+for(i in 3:length(data3)){
+  dat=t.test(x3[i],x5[i])
+  datp=dat$p.value
+  name1=paste("P-Value",3,"VS",5,names(x1[i]))
+  name=c(name,name1)
+  datac=c(datac,datp)
+}
+datac4=cbind(name,datac)
+datacc=cbind(datac1,datac2,datac3,datac4)
+```
+
+```{r}
+write.csv(datacc,file="C:/Users/admin/Desktop/t-test(组织).csv",quote=F,row.names = F)
+```
+
+```{r}
+datab=c()
+name=c()
+for(i in 3:length(data3)){
+  group=as.matrix(data3[2])
+  value=as.matrix(data3[i])
+  fit<-aov(value~group,data=data3)
+  out<-lsdTest(fit)
+  dat_p=out$p.value
+  datab=c(datab,dat_p[2,1],dat_p[2,2],dat_p[3,3],dat_p[4,3])
+  name1=paste("ANOVA Test",3,"VS",1,names(data3[i]),"P-value")
+  name2=paste("ANOVA Test",3,"VS",2,names(data3[i]),"P-value")
+  name3=paste("ANOVA Test",4,"VS",3,names(data3[i]),"P-value")
+  name4=paste("ANOVA Test",5,"VS",3,names(data3[i]),"P-value")
+  name=c(name,name1,name2,name3,name4)
+}
+data_anova=cbind(name,datab)
+colnames(data_anova)=c("ANOVA Analysis","Pvalue")
+```
+
+```{r}
+write.csv(data_anova,file="C:/Users/admin/Desktop/单因素(组织).csv",quote=F,row.names = F)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("ggplot2")
+```
+
+```{r}
+data=read.csv("C:/Users/admin/Desktop/111/项目/1/整理.csv")
+data1=read.csv("C:/Users/admin/Desktop/111/项目/1/天数.csv")
+data2=read.csv("C:/Users/admin/Desktop/111/项目/1/天.csv")
+```
+
+```{r}
+ggplot(data1,aes(x=Day, y=Weight, colour=factor(as.matrix(Group)))) + geom_line()+geom_point(pch=18)+scale_colour_manual(values=c("red","green","blue","Yellow","Purple"))
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==0),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab0=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==6),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab6=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==13),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab13=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==20),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab20=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==27),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab27=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==35),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab35=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==42),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab42=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==49),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab49=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==56),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab56=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==59),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab59=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==65),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab65=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==71),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab71=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==77),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab77=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==83),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab83=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==89),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab89=cbind(datac,datad)
+```
+
+```{r}
+datac=c()
+datad=c()
+for(i in 1:5){
+  X1=data1[which(data1[1]==i&data1[2]==93),]
+  x1<-mean(X1$Weight)
+  x11<-mean(X1$Dai.score)
+  datac=rbind(datac,x1)
+  datad=rbind(datad,x11)
+}
+datab93=cbind(datac,datad)
+```
+
+```{r}
+datab=rbind(datab0,datab6,datab13,datab20,datab27,datab35,datab42,datab49,datab56,datab59,datab65,datab71,datab77,datab83,datab89,datab93)
+datab=na.omit(datab)
+datat=cbind(data2,datab)
+names(datat)=c("Groupname","Group","Day","Weight","DaiScore")
+```
+
+```{r}
+pdf("lineplot.pdf")
+group=factor(datat$Groupname)
+p1<-ggplot(datat,aes(x=Day, y=Weight, colour=group)) + geom_line(lwd=1.2)+geom_point(size=4,pch=18)+scale_colour_manual(values=c("red","green","Skyblue","Black","Purple"))
+p2<-ggplot(datat,aes(x=Day, y=DaiScore, colour=group)) + geom_line(lwd=1.2)+geom_point(size=4,pch=18)+scale_colour_manual(values=c("red","green","blue","Black","Purple"))
+print(p1)
+print(p2)
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
